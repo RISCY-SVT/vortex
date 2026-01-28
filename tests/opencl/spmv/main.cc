@@ -171,7 +171,12 @@ int main(int argc, char **argv) {
   char clOptions[50];
   sprintf(clOptions, "");
   clStatus = clBuildProgram(clProgram, 1, &clDevice, clOptions, NULL, NULL);
-  CHECK_ERROR("clBuildProgram")
+  if (clStatus != CL_SUCCESS) {
+    vx_cl_report_build_error("clBuildProgram", clStatus,
+                             clProgram, clDevice,
+                             __FILE__, __LINE__);
+    exit(1);
+  }
 
   cl_kernel clKernel = clCreateKernel(clProgram, "spmv_jds_naive", &clStatus);
   CHECK_ERROR("clCreateKernel")
@@ -322,7 +327,7 @@ int main(int argc, char **argv) {
   for (i = 0; i < 1; i++) {
     clStatus = clEnqueueNDRangeKernel(clCommandQueue, clKernel, 1, NULL, &grid,
                                       &block, 0, NULL, NULL);
-    CHECK_ERROR("clEnqueueNDRangeKernel")
+    CHECK_ENQUEUE_ERROR("clEnqueueNDRangeKernel", clDevice, clKernel, 1, &grid, &block)
   }
   clStatus = clFinish(clCommandQueue);
   CHECK_ERROR("clFinish")

@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include "../ocl_diag.h"
 
 #define FLOAT_ULP 6
 
@@ -19,7 +20,7 @@
      cl_int _err = _expr;                                              \
      if (_err == CL_SUCCESS)                                           \
        break;                                                          \
-     printf("OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err);   \
+     vx_cl_report_error(#_expr, _err, __FILE__, __LINE__);             \
 	 cleanup();			                                                     \
      exit(-1);                                                         \
    } while (0)
@@ -29,12 +30,35 @@
      cl_int _err = CL_INVALID_VALUE;                                   \
      decltype(_expr) _ret = _expr;                                     \
      if (_err != CL_SUCCESS) {                                         \
-       printf("OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err); \
+       vx_cl_report_error(#_expr, _err, __FILE__, __LINE__);           \
 	   cleanup();			                                                   \
        exit(-1);                                                       \
      }                                                                 \
      _ret;                                                             \
    })
+
+#define CL_BUILD_CHECK(_prog, _dev, _expr)                              \
+   do {                                                                 \
+     cl_int _err = (_expr);                                             \
+     if (_err != CL_SUCCESS) {                                          \
+       vx_cl_report_build_error(#_expr, _err, (_prog), (_dev),          \
+                                __FILE__, __LINE__);                   \
+       cleanup();                                                      \
+       exit(-1);                                                       \
+     }                                                                  \
+   } while (0)
+
+#define CL_ENQUEUE_CHECK(_expr, _dev, _kernel, _dim, _gws, _lws)         \
+   do {                                                                 \
+     cl_int _err = (_expr);                                             \
+     if (_err != CL_SUCCESS) {                                          \
+       vx_cl_report_enqueue_error(#_expr, _err, (_dev), (_kernel),      \
+                                  (_dim), (_gws), (_lws),               \
+                                  __FILE__, __LINE__);                 \
+       cleanup();                                                      \
+       exit(-1);                                                       \
+     }                                                                 \
+   } while (0)
 
 static int read_kernel_file(const char* filename, uint8_t** data, size_t* size) {
   if (nullptr == filename || nullptr == data || 0 == size)
@@ -167,7 +191,8 @@ int main (int argc, char **argv) {
   }
 
   // Build program
-  CL_CHECK(clBuildProgram(program, 1, &device_id, NULL, NULL, NULL));
+  CL_BUILD_CHECK(program, device_id,
+                 clBuildProgram(program, 1, &device_id, NULL, NULL, NULL));
 
   // Create kernel
   kernel = CL_CHECK2(clCreateKernel(program, KERNEL_NAME, &_err));
@@ -195,7 +220,9 @@ int main (int argc, char **argv) {
 
   printf("Execute the kernel\n");
   auto time_start = std::chrono::high_resolution_clock::now();
-  CL_CHECK(clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &size, &local_size, 0, NULL, NULL));
+  CL_ENQUEUE_CHECK(clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL,
+                                          &size, &local_size, 0, NULL, NULL),
+                   device_id, kernel, 1, &size, &local_size);
   CL_CHECK(clFinish(commandQueue));
   auto time_end = std::chrono::high_resolution_clock::now();
   double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();

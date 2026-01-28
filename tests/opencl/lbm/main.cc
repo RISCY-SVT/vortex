@@ -329,7 +329,12 @@ void OpenCL_initialize(struct pb_Parameters *p, OpenCL_Param *prm) {
   //sprintf(clOptions, "-I src/opencl_base");
 	//clStatus = clBuildProgram(prm->clProgram, 1, &(prm->clDevice), clOptions, NULL, NULL);
 	clStatus = clBuildProgram(prm->clProgram, 1, &prm->clDevice, NULL, NULL, NULL);
-  CHECK_ERROR("clBuildProgram")
+  if (clStatus != CL_SUCCESS) {
+    vx_cl_report_build_error("clBuildProgram", clStatus,
+                             prm->clProgram, prm->clDevice,
+                             __FILE__, __LINE__);
+    exit(1);
+  }
 
   prm->clKernel =
       clCreateKernel(prm->clProgram, "performStreamCollide_kernel", &clStatus);

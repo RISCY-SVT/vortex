@@ -26,6 +26,20 @@
 
 /******************************************************************************/
 
+static size_t clamp_local_size(size_t gws, size_t limit) {
+	if (limit == 0) {
+		return 1;
+	}
+	size_t l = (limit < gws) ? limit : gws;
+	while (l > 1 && (gws % l) != 0) {
+		--l;
+	}
+	if (l == 0) {
+		l = 1;
+	}
+	return l;
+}
+
 void OpenCL_LBM_performStreamCollide( const OpenCL_Param* prm, cl_mem srcGrid, cl_mem dstGrid ) {
 	 
 	cl_int clStatus;
@@ -38,8 +52,47 @@ void OpenCL_LBM_performStreamCollide( const OpenCL_Param* prm, cl_mem srcGrid, c
 
 	size_t dimBlock[3] = {SIZE_X,1,1};
 	size_t dimGrid[3] = {SIZE_X*SIZE_Y,SIZE_Z,1};
-	clStatus = clEnqueueNDRangeKernel(prm->clCommandQueue,prm->clKernel,3,NULL,dimGrid,dimBlock,0,NULL,NULL); 
-	CHECK_ERROR("clEnqueueNDRangeKernel") 	
+	size_t max_wg = 0;
+	size_t max_wi[3] = {0, 0, 0};
+	size_t kernel_wg = 0;
+	size_t compile_wg[3] = {0, 0, 0};
+	clStatus = clGetDeviceInfo(prm->clDevice, CL_DEVICE_MAX_WORK_GROUP_SIZE,
+                             sizeof(max_wg), &max_wg, NULL);
+	CHECK_ERROR("clGetDeviceInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE)")
+	clStatus = clGetDeviceInfo(prm->clDevice, CL_DEVICE_MAX_WORK_ITEM_SIZES,
+                             sizeof(max_wi), max_wi, NULL);
+	CHECK_ERROR("clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES)")
+	clStatus = clGetKernelWorkGroupInfo(prm->clKernel, prm->clDevice,
+	                                    CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(kernel_wg), &kernel_wg, NULL);
+	CHECK_ERROR("clGetKernelWorkGroupInfo(CL_KERNEL_WORK_GROUP_SIZE)")
+	clStatus = clGetKernelWorkGroupInfo(prm->clKernel, prm->clDevice,
+	                                    CL_KERNEL_COMPILE_WORK_GROUP_SIZE,
+	                                    sizeof(compile_wg), compile_wg, NULL);
+	CHECK_ERROR("clGetKernelWorkGroupInfo(CL_KERNEL_COMPILE_WORK_GROUP_SIZE)")
+
+	size_t limit0 = dimBlock[0];
+	if (max_wi[0] != 0 && max_wi[0] < limit0)
+		limit0 = max_wi[0];
+	if (max_wg != 0 && max_wg < limit0)
+		limit0 = max_wg;
+	if (kernel_wg != 0 && kernel_wg < limit0)
+		limit0 = kernel_wg;
+	if (compile_wg[0] != 0)
+		limit0 = compile_wg[0];
+	dimBlock[0] = clamp_local_size(dimGrid[0], limit0);
+	if (compile_wg[1] != 0)
+		dimBlock[1] = compile_wg[1];
+	if (compile_wg[2] != 0)
+		dimBlock[2] = compile_wg[2];
+	if (vx_cl_diag_enabled() && dimBlock[0] != SIZE_X) {
+		fprintf(stderr, "LBM: adjusted local size X from %d to %zu\n", SIZE_X, dimBlock[0]);
+		vx_cl_print_work_sizes(3, dimGrid, dimBlock);
+		vx_cl_print_device_limits(prm->clDevice);
+	}
+
+	clStatus = clEnqueueNDRangeKernel(prm->clCommandQueue,prm->clKernel,3,NULL,dimGrid,dimBlock,0,NULL,NULL);
+	CHECK_ENQUEUE_ERROR("clEnqueueNDRangeKernel", prm->clDevice, prm->clKernel, 3, dimGrid, dimBlock)
 	
 	clStatus = clFinish(prm->clCommandQueue);
 	CHECK_ERROR("clFinish")

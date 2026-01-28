@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "../ocl_diag.h"
+
 typedef struct {
 	cl_platform_id clPlatform;
 	cl_context_properties clCps[3];
@@ -17,11 +19,19 @@ typedef struct {
 
 
 #define CHECK_ERROR(errorMessage)           \
-  if(clStatus != CL_SUCCESS)                \
-  {                                         \
-     printf("Error: %s!\n",errorMessage);   \
-     printf("Line: %d\n",__LINE__);         \
-     exit(1);                               \
+  if (clStatus != CL_SUCCESS) {             \
+    vx_cl_report_error((errorMessage),      \
+                       clStatus,            \
+                       __FILE__, __LINE__); \
+    exit(1);                                \
+  }
+
+#define CHECK_ENQUEUE_ERROR(errorMessage, dev, kernel, dim, gws, lws)   \
+  if (clStatus != CL_SUCCESS) {                                        \
+    vx_cl_report_enqueue_error((errorMessage), clStatus, (dev),        \
+                               (kernel), (dim), (gws), (lws),          \
+                               __FILE__, __LINE__);                   \
+    exit(1);                                                           \
   }
 
 char* readFile(char*);

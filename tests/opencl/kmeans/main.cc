@@ -23,6 +23,7 @@ double gettime() {
 #else
 #include <CL/cl.h>
 #endif
+#include "../ocl_diag.h"
 
 #ifndef FLT_MAX
 #define FLT_MAX 3.40282347e+38
@@ -284,8 +285,7 @@ int allocate(int n_points, int n_features, int n_clusters, float **feature) {
                              n_points * n_features * sizeof(float), feature[0],
                              0, 0, 0);
   if (err != CL_SUCCESS) {
-    printf("ERROR: clEnqueueWriteBuffer d_feature (size:%d) => %d\n",
-           n_points * n_features, err);
+    vx_cl_report_error("clEnqueueWriteBuffer(d_feature)", err, __FILE__, __LINE__);
     return -1;
   }
 
@@ -305,7 +305,10 @@ int allocate(int n_points, int n_features, int n_clusters, float **feature) {
   err = clEnqueueNDRangeKernel(cmd_queue, kernel2, 1, NULL, global_work,
                                &local_work_size, 0, 0, 0);
   if (err != CL_SUCCESS) {
-    printf("ERROR: clEnqueueNDRangeKernel()=>%d failed\n", err);
+    vx_cl_report_enqueue_error("clEnqueueNDRangeKernel", err,
+                               device_list ? device_list[0] : NULL,
+                               kernel2, 1, global_work, &local_work_size,
+                               __FILE__, __LINE__);
     return -1;
   }
 
@@ -350,8 +353,7 @@ int kmeansOCL(float **feature, /* in: [npoints][nfeatures] */
                              n_clusters * n_features * sizeof(float),
                              clusters[0], 0, 0, 0);
   if (err != CL_SUCCESS) {
-    printf("ERROR: clEnqueueWriteBuffer d_cluster (size:%d) => %d\n", n_points,
-           err);
+    vx_cl_report_error("clEnqueueWriteBuffer(d_cluster)", err, __FILE__, __LINE__);
     return -1;
   }
 
@@ -370,14 +372,17 @@ int kmeansOCL(float **feature, /* in: [npoints][nfeatures] */
   err = clEnqueueNDRangeKernel(cmd_queue, kernel_s, 1, NULL, global_work,
                                &local_work_size, 0, 0, 0);
   if (err != CL_SUCCESS) {
-    printf("ERROR: clEnqueueNDRangeKernel()=>%d failed\n", err);
+    vx_cl_report_enqueue_error("clEnqueueNDRangeKernel", err,
+                               device_list ? device_list[0] : NULL,
+                               kernel_s, 1, global_work, &local_work_size,
+                               __FILE__, __LINE__);
     return -1;
   }
   clFinish(cmd_queue);
   err = clEnqueueReadBuffer(cmd_queue, d_membership, 1, 0,
                             n_points * sizeof(int), membership_OCL, 0, 0, 0);
   if (err != CL_SUCCESS) {
-    printf("ERROR: Memcopy Out\n");
+    vx_cl_report_error("clEnqueueReadBuffer(d_membership)", err, __FILE__, __LINE__);
     return -1;
   }
 

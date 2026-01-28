@@ -16,14 +16,7 @@
 #include "file.h"
 #include "ocl.h"
 #include <math.h>
-
-#define CHECK_ERROR(errorMessage)           \
-  if(clStatus != CL_SUCCESS)                \
-  {                                         \
-     printf("Error: %s!\n",errorMessage);   \
-     printf("Line: %d\n",__LINE__);         \
-     exit(1);                               \
-  }
+#include "../ocl_diag.h"
 
 static int read_data(float *A0, int nx,int ny,int nz,FILE *fp)
 {
@@ -220,7 +213,12 @@ int main(int argc, char** argv) {
 	char clOptions[50];
 	sprintf(clOptions,"-I src/opencl_base");
 	clStatus = clBuildProgram(clProgram,1,&clDevice,clOptions,NULL,NULL);
-	CHECK_ERROR("clBuildProgram")
+	if (clStatus != CL_SUCCESS) {
+		vx_cl_report_build_error("clBuildProgram", clStatus,
+		                         clProgram, clDevice,
+		                         __FILE__, __LINE__);
+		exit(1);
+	}
 
 	cl_kernel clKernel = clCreateKernel(clProgram,"naive_kernel",&clStatus);
 	CHECK_ERROR("clCreateKernel")
@@ -289,7 +287,7 @@ int main(int argc, char** argv) {
 	{
 		clStatus = clEnqueueNDRangeKernel(clCommandQueue,clKernel,3,NULL,grid,block,0,NULL,NULL);
     //printf("iteration %d\n",t)
-		CHECK_ERROR("clEnqueueNDRangeKernel")
+		CHECK_ENQUEUE_ERROR("clEnqueueNDRangeKernel", clDevice, clKernel, 3, grid, block)
 
     cl_mem d_temp = d_A0;
     d_A0 = d_Anext;

@@ -23,9 +23,10 @@ __kernel void performStreamCollide_kernel( __global float* srcGrid, __global flo
         //  and initialization of the variables SWEEP_X, SWEEP_Y and SWEEP_Z
 
         SWEEP_VAR
-	SWEEP_X = get_local_id(0);
-	SWEEP_Y = get_group_id(0);
-	SWEEP_Z = get_group_id(1);
+	int gxy = (int)get_global_id(0);
+	SWEEP_X = gxy % SIZE_X;
+	SWEEP_Y = gxy / SIZE_X;
+	SWEEP_Z = get_global_id(1);
 	
 	float temp_swp, tempC, tempN, tempS, tempE, tempW, tempT, tempB;
 	float tempNE, tempNW, tempSE, tempSW, tempNT, tempNB, tempST ;
