@@ -4,6 +4,15 @@ include $(ROOT_DIR)/config.mk
 simx:
 	$(MAKE) -C simx
 
+rtlsim:
+	$(MAKE) -C rtlsim
+
+opaesim:
+	$(MAKE) -C opaesim
+
+xrtsim:
+	$(MAKE) -C xrtsim
+
 all:
 	$(MAKE) -C simx
 	$(MAKE) -C rtlsim
@@ -15,3 +24,5 @@ clean:
 	$(MAKE) -C rtlsim clean
 	$(MAKE) -C opaesim clean
 	$(MAKE) -C xrtsim clean
+
+.PHONY: all simx rtlsim opaesim xrtsim clean
