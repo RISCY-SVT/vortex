@@ -1,5 +1,11 @@
 ROOT_DIR := $(realpath ../../..)
 
+HOST_CC ?= gcc
+HOST_CXX ?= g++
+
+CC := $(HOST_CC)
+CXX := $(HOST_CXX)
+
 TARGET ?= opaesim
 
 XRT_SYN_DIR ?= $(VORTEX_HOME)/hw/syn/xilinx/xrt

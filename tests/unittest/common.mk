@@ -1,6 +1,12 @@
 
 ROOT_DIR := $(realpath ../../..)
 
+HOST_CC ?= gcc
+HOST_CXX ?= g++
+
+CC := $(HOST_CC)
+CXX := $(HOST_CXX)
+
 CXXFLAGS += -std=c++17 -Wall -Wextra -pedantic -Wfatal-errors
 CXXFLAGS += -I$(SW_COMMON_DIR)
 CXXFLAGS += $(CONFIGS)
