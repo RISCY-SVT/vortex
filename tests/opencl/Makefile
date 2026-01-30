@@ -22,6 +22,12 @@ all:
 	$(MAKE) -C kmeans
 	$(MAKE) -C blackscholes
 	$(MAKE) -C bfs
+	$(MAKE) -C test_pattern
+	$(MAKE) -C yuv2rgb
+	$(MAKE) -C scaler
+	$(MAKE) -C convolution
+	$(MAKE) -C alpha_blend
+	$(MAKE) -C scanout_sim
 
 run-simx:
 	$(MAKE) -C vecadd run-simx
@@ -43,6 +49,12 @@ run-simx:
 	$(MAKE) -C kmeans run-simx
 	$(MAKE) -C blackscholes run-simx
 	$(MAKE) -C bfs run-simx
+	$(MAKE) -C test_pattern run-simx
+	$(MAKE) -C yuv2rgb run-simx
+	$(MAKE) -C scaler run-simx
+	$(MAKE) -C convolution run-simx
+	$(MAKE) -C alpha_blend run-simx
+	$(MAKE) -C scanout_sim run-simx
 
 run-rtlsim:
 	$(MAKE) -C vecadd run-rtlsim
@@ -64,6 +76,12 @@ run-rtlsim:
 	$(MAKE) -C kmeans run-rtlsim
 	$(MAKE) -C blackscholes run-rtlsim
 	$(MAKE) -C bfs run-rtlsim
+	$(MAKE) -C test_pattern run-rtlsim
+	$(MAKE) -C yuv2rgb run-rtlsim
+	$(MAKE) -C scaler run-rtlsim
+	$(MAKE) -C convolution run-rtlsim
+	$(MAKE) -C alpha_blend run-rtlsim
+	$(MAKE) -C scanout_sim run-rtlsim
 
 clean:
 	$(MAKE) -C vecadd clean
@@ -86,3 +104,9 @@ clean:
 	$(MAKE) -C kmeans clean
 	$(MAKE) -C blackscholes clean
 	$(MAKE) -C bfs clean
+	$(MAKE) -C test_pattern clean
+	$(MAKE) -C yuv2rgb clean
+	$(MAKE) -C scaler clean
+	$(MAKE) -C convolution clean
+	$(MAKE) -C alpha_blend clean
+	$(MAKE) -C scanout_sim clean

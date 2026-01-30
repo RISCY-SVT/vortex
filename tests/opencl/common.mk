@@ -73,6 +73,7 @@ CXXFLAGS += -std=c++17 -Wall -Wextra -Wfatal-errors
 CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-parameter -Wno-narrowing
 CXXFLAGS += -pthread
 CXXFLAGS += -I$(POCL_PATH)/include
+CXXFLAGS += -I$(ROOT_DIR)/tests/opencl -I$(VORTEX_HOME)/tests/opencl
 CXXFLAGS += $(CONFIGS)
 
 POCL_CC_FLAGS += LLVM_PREFIX=$(LLVM_VORTEX) POCL_VORTEX_BINTOOL="$(VX_BINTOOL)" POCL_VORTEX_CFLAGS="$(VX_CFLAGS)" POCL_VORTEX_LDFLAGS="$(VX_LDFLAGS)"
@@ -177,7 +178,7 @@ clean-kernel:
 	rm -rf *.dump *.ll
 
 clean-host:
-	rm -rf $(PROJECT) $(PROJECT).host *.o *.log .depend
+	rm -rf $(PROJECT) $(PROJECT).host *.o *.log .depend artifacts output*.ppm
 
 clean: clean-kernel clean-host
 
