@@ -83,6 +83,14 @@ run-rtlsim:
 	$(MAKE) -C alpha_blend run-rtlsim
 	$(MAKE) -C scanout_sim run-rtlsim
 
+DEMO_APPS := dodecahedron_demo
+
+demo-simx:
+	$(MAKE) -C dodecahedron_demo run-simx
+
+demo-rtlsim:
+	$(MAKE) -C dodecahedron_demo run-rtlsim
+
 clean:
 	$(MAKE) -C vecadd clean
 	$(MAKE) -C sgemm clean
@@ -110,3 +118,4 @@ clean:
 	$(MAKE) -C convolution clean
 	$(MAKE) -C alpha_blend clean
 	$(MAKE) -C scanout_sim clean
+	$(MAKE) -C dodecahedron_demo clean

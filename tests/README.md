@@ -202,3 +202,54 @@ Example (path only):
 cd /data/vortex/build
 python3 /data/vortex/tests/run_video_suite.py --build-dir /data/vortex/build --driver simx --mode full
 ```
+
+## OpenCL demo: Roman dodecahedron (dodecahedron_demo)
+
+This demo renders a stylized **Roman dodecahedron** with solid (opaque) faces, optional holes/knobs, and a subtle beveled edge look. It is **not** part of regression runs or the video suite runner.
+
+Run via build-blackbox (SimX recommended):
+
+```
+cd "$VORTEX_BUILD"
+source ./ci/toolchain_env.sh
+./ci/blackbox.sh --driver=simx --app=dodecahedron_demo \\
+  --args=\"--style reference_blue -w 640 -h 640 \\
+         --dump --outdir $VORTEX_BUILD/artifacts/demos/dodecahedron --prefix roman_ref\"
+```
+
+Output:
+```
+$VORTEX_BUILD/artifacts/demos/dodecahedron/roman_ref_output.ppm
+```
+
+Performance note:
+- The full 640x640 render can take tens of minutes in SimX. Use `-w 320 -h 320` for a faster preview.
+
+Optional tweaks:
+- `--style reference_blue | iso_old` selects the preset (reference_blue is solid blue; iso_old is the legacy isometric look)
+- `--palette mono_blue | face_hues` overrides the palette
+- `--yaw/--pitch/--roll` and `--zoom` adjust the camera
+- `--alpha <0..1>` controls face transparency (useful with `iso_old`)
+- `--holes 0|1` toggles pentagon holes
+- `--rings 0|1` toggles decorative rings around holes
+- `--knobs 0|1` toggles vertex knobs
+- `--knob-diam-frac <f>` sets knob diameter as a fraction of edge length (reference_blue default is 0.20 ≈ 1/5 edge)
+- `--wire 0|1` toggles subtle edge darkening
+- `--wire-thickness <f>` controls edge thickness
+- `--knob-radius <f>` overrides the edge-relative size with a pixel radius
+
+Legacy isometric look (if desired):
+```
+./ci/blackbox.sh --driver=simx --app=dodecahedron_demo \\
+  --args=\"--style iso_old --palette face_hues --alpha 0.55 -w 640 -h 640 \\
+         --dump --outdir $VORTEX_BUILD/artifacts/demos/dodecahedron --prefix roman_iso\"
+```
+
+Viewing/conversion:
+```
+python3 - <<'PY'
+from PIL import Image
+img = Image.open(\"$VORTEX_BUILD/artifacts/demos/dodecahedron/roman_iso_output.ppm\")
+img.save(\"$VORTEX_BUILD/artifacts/demos/dodecahedron/roman_iso_output.png\")
+PY
+```
