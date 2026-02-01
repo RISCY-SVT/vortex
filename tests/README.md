@@ -212,8 +212,8 @@ Run via build-blackbox (SimX recommended):
 ```
 cd "$VORTEX_BUILD"
 source ./ci/toolchain_env.sh
-./ci/blackbox.sh --driver=simx --app=dodecahedron_demo \\
-  --args=\"--style reference_blue -w 640 -h 640 \\
+./ci/blackbox.sh --driver=simx --app=dodecahedron_demo \
+  --args=\"--style reference_blue -w 640 -h 640 \
          --dump --outdir $VORTEX_BUILD/artifacts/demos/dodecahedron --prefix roman_ref\"
 ```
 
@@ -237,6 +237,23 @@ Optional tweaks:
 - `--wire 0|1` toggles subtle edge darkening
 - `--wire-thickness <f>` controls edge thickness
 - `--knob-radius <f>` overrides the edge-relative size with a pixel radius
+
+HQ-optimized variant (identical look priority, faster kernel):
+- App: `dodecahedron_demo_hqopt` (not part of regression runs)
+- Adds `--quality hq|fast` (default hq). `fast` disables rings/edge bevel/shadow unless explicitly set.
+- Debug: `--debug-counters 1` prints bbox/inside pixel counts and fails if no face pixels are rendered.
+- Recommended commands:
+```
+./ci/blackbox.sh --driver=simx --app=dodecahedron_demo_hqopt \
+  --args="--style reference_blue --quality hq -w 320 -h 320 \
+         --dump --outdir $VORTEX_BUILD/artifacts/demos/dodecahedron --prefix roman_hqopt_320"
+```
+Fast preview:
+```
+./ci/blackbox.sh --driver=simx --app=dodecahedron_demo_hqopt \
+  --args="--style reference_blue --quality fast -w 320 -h 320 \
+         --dump --outdir $VORTEX_BUILD/artifacts/demos/dodecahedron --prefix roman_hqopt_fast"
+```
 
 Legacy isometric look (if desired):
 ```

@@ -83,13 +83,13 @@ run-rtlsim:
 	$(MAKE) -C alpha_blend run-rtlsim
 	$(MAKE) -C scanout_sim run-rtlsim
 
-DEMO_APPS := dodecahedron_demo
+DEMO_APPS := dodecahedron_demo dodecahedron_demo_hqopt
 
 demo-simx:
-	$(MAKE) -C dodecahedron_demo run-simx
+	for app in $(DEMO_APPS); do $(MAKE) -C $$app run-simx; done
 
 demo-rtlsim:
-	$(MAKE) -C dodecahedron_demo run-rtlsim
+	for app in $(DEMO_APPS); do $(MAKE) -C $$app run-rtlsim; done
 
 clean:
 	$(MAKE) -C vecadd clean
